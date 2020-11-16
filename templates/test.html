@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        svg {border:1px solid black;}
+    </style>
+</head>
+<svg width="1920" height="1080"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<body>
+<script>
+
+
+// append the svg object to the body of the page
+var svg = d3.select("svg"),
+    width = svg.attr("width"),
+    height = svg.attr("height");
+
+  
+// load edges  
+var edges = {{ edges|safe }}
+
+// load nodes
+var nodes = {{ nodes|safe }}
+nodes.forEach(function(d) { 
+                            if (d.type == 'pessoa') {d.id = d.info.cpid, d.text = d.info.iniciais}
+                            else if (d.type == 'partido') {d.id = d.info.value,  d.text = d.info.value}
+                            else if (d.type == 'profissao') {d.id = d.info.value, d.text = d.info.value}
+                            else if (d.type == 'comissoes_parlamentares_a_que_pertence') {d.id = d.info.value, d.text = d.info.value}
+                            else if (d.type == 'data_de_nascimento') {d.id = d.info.value, d.text = d.info.value}
+                            })
+// set up simulation
+var simulation = d3.forceSimulation()
+    .nodes(nodes)
+    .force("link", d3.forceLink(edges).id(function(d) { return d.id; }))
+    .force("charge", d3.forceManyBody().strength(-200))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .on("tick", ticked);
+// draw edge lones
+var link = svg.append("g")
+    .style("stroke", "#aaa")
+    .selectAll("line")
+    .data(edges)
+    .enter().append("line")
+    .style("stroke", "#aaa")
+    .attr("stroke-width", 0.2);
+
+var node = svg.append("g")
+    .selectAll("g")
+    .data(nodes)
+    .enter().append("g")
+    
+    
+
+        
+
+    
+var circles = node.filter(
+                function(d){
+                        return d.type == 'pessoa' || d.type == 'partido' || d.type == 'profissao' || d.type == 'data_de_nascimento';})
+    .append("circle")
+    .attr("r", function(d) {      
+     d.weight = link.filter(function(l) {
+       return l.source.index == d.index || l.target.index == d.index
+     }).size();      
+     var minRadius = 1;
+     return minRadius + (d.weight);
+   })
+    .attr("fill", function(d) { 
+                                    if (d.type == 'pessoa') {return "#eacfac"}
+
+                                    else if (d.text == 'PS') {return "#f43674"}
+                                    else if (d.text == 'PSD') {return "#f48b30"}
+                                    else if (d.text == 'CH') {return "#2e3853"}
+                                    else if (d.text == 'BE') {return "#0b0b0b"}
+                                    else if (d.text == 'CDU') {return "#003e89"}
+                                    else if (d.text == 'IL') {return "#22c2fe"}
+                                    else if (d.text == 'PEV') {return "#666666"}
+                                    else if (d.text == 'PCP') {return "#222"}
+                                    else if (d.text == 'PAN') {return "#29c1ac"}
+                                    else if (d.text == 'CDS-PP') {return "#1793d1"}
+
+                                    else if (d.type == 'profissao') {return "#504048"}
+                                    
+                                    else if (d.type == 'data_de_nascimento')  {return "#be6043"};
+                                    })
+    
+var squares = node
+    .filter(
+        function(d){return d.type == 'comissoes_parlamentares_a_que_pertence'})
+    .append('rect')
+    .attr('width', 10)
+    .attr('height', 10)
+    .attr('fill', '#623122');
+
+var labels = node.append("text")
+    .text(function(d) { return d.text;})
+    .attr('x', 6)
+    .attr('y', 3)
+    .style("font-size", "8px")
+        
+
+drag_handler = d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended);
+
+drag_handler(node)
+    
+function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+}
+
+function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+}
+
+function bound(d, dim) {
+    return Math.max(50, Math.min(d, dim - 50))
+}
+function ticked() {
+
+
+node
+    .attr("transform", function(d) {
+      return "translate(" + bound(d.x, width) + "," + bound(d.y, height) + ")";
+    })
+link
+    .attr("x1", function(d) { return bound(d.source.x, width); })
+    .attr("y1", function(d) { return bound(d.source.y, height); })
+    .attr("x2", function(d) { return bound(d.target.x, width); })
+    .attr("y2", function(d) { return bound(d.target.y, height); });
+
+}
+
+</script>
+
+</body>

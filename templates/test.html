@@ -5,16 +5,47 @@
         svg {border:1px solid black;}
     </style>
 </head>
-<svg width="1920" height="1080"></svg>
+<svg width="1000" height="1000"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <body>
 <script>
 
 
 // append the svg object to the body of the page
-var svg = d3.select("svg"),
-    width = svg.attr("width"),
-    height = svg.attr("height");
+var svg = d3.select("svg")
+
+//add encompassing group for the zoom 
+var g = svg.append("g")
+    .attr("class", "everything");
+//add zoom capabilities 
+var zoom_handler = d3.zoom()
+    .on("zoom", zoom_actions);
+
+zoom_handler(svg);     
+
+function zoom_actions(){
+    g.attr("transform", d3.event.transform)
+}
+
+  /*
+
+.call(d3.zoom()
+.scaleExtent([1 / 2, 4]).on("zoom", function () {
+    svg.attr("transform", d3.event.transform)
+  }))
+  .append("g");
+*/
+
+function box_force() { 
+  for (var i = 0, n = nodes.length; i < n; ++i) {
+    curr_node = nodes[i];
+    curr_node.x = Math.max(10, Math.min(width - 10, curr_node.x));
+    curr_node.y = Math.max(10, Math.min(height - 10, curr_node.y));
+  }
+}
+
+var width = svg.attr("width")
+var height = svg.attr("height")
 
   
 // load edges  
@@ -35,17 +66,17 @@ var simulation = d3.forceSimulation()
     .force("link", d3.forceLink(edges).id(function(d) { return d.id; }))
     .force("charge", d3.forceManyBody().strength(-200))
     .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("box_force", box_force)
     .on("tick", ticked);
 // draw edge lones
-var link = svg.append("g")
-    .style("stroke", "#aaa")
+var link = g.append("g")
     .selectAll("line")
     .data(edges)
     .enter().append("line")
     .style("stroke", "#aaa")
     .attr("stroke-width", 0.2);
 
-var node = svg.append("g")
+var node = g.append("g")
     .selectAll("g")
     .data(nodes)
     .enter().append("g")
@@ -97,7 +128,7 @@ var labels = node.append("text")
     .text(function(d) { return d.text;})
     .attr('x', 6)
     .attr('y', 3)
-    .style("font-size", "8px")
+    .style("font-size", function(d) { return d.weight;})
         
 
 drag_handler = d3.drag()
@@ -106,7 +137,9 @@ drag_handler = d3.drag()
     .on("end", dragended);
 
 drag_handler(node)
-    
+
+  
+
 function dragstarted(d) {
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x;
@@ -124,6 +157,8 @@ function dragended(d) {
     d.fy = null;
 }
 
+
+
 function bound(d, dim) {
     return Math.max(50, Math.min(d, dim - 50))
 }
@@ -132,15 +167,16 @@ function ticked() {
 
 node
     .attr("transform", function(d) {
-      return "translate(" + bound(d.x, width) + "," + bound(d.y, height) + ")";
+      return "translate(" + d.x + "," + d.y + ")";
     })
 link
-    .attr("x1", function(d) { return bound(d.source.x, width); })
-    .attr("y1", function(d) { return bound(d.source.y, height); })
-    .attr("x2", function(d) { return bound(d.target.x, width); })
-    .attr("y2", function(d) { return bound(d.target.y, height); });
+    .attr("x1", function(d) { return d.source.x; })
+    .attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; })
+    .attr("y2", function(d) { return d.target.y; });
 
 }
+
 
 </script>
 

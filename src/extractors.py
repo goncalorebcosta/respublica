@@ -1,7 +1,7 @@
 import json
 import re
-import random
-
+from unidecode import unidecode
+import pandas as pd
 
 class BiographyExtractor:
     def __init__(self):
@@ -12,6 +12,13 @@ class BiographyExtractor:
         self.edges_path = "./data/processed/edges.json"
         with open(self.json_path) as json_file:
             self.data = json.load(json_file)
+        self.job_map = pd \
+            .read_csv('./data/profissoes.csv',
+                    sep=';', 
+                    index_col=0,
+                    engine='python',
+                    encoding='utf-8') \
+            .to_dict(orient='index')
 
     def _create_edge(self, src, dst, edge_type, **kwargs):
         self.edges.append(
@@ -26,7 +33,13 @@ class BiographyExtractor:
         self._create_edge(self._congress_id, v, tag, **kwargs)
 
     def _create_other_node_and_edge(self, node_type):
-        value = self._biography[node_type]
+        value = self._biography[node_type].strip()
+        if node_type == "profissao":
+            value = unidecode(value.lower())
+            try:
+                value = self.job_map[value]['value']
+            except KeyError:
+                pass
         if node_type == "data_de_nascimento":
             value = value.split("-")[0][:3] + "0s"
         self._append_other_node_and_edge(node_type, value)

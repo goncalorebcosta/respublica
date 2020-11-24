@@ -18,3 +18,6 @@
     - Scraper
     - MongoDB
     - Web app
+- Set up logs
+- Set up tests
+

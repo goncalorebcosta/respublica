@@ -36,7 +36,12 @@ class BaseSpider(scrapy.Spider):
 class BiographySpider(BaseSpider):
     name = 'biography'
     custom_settings = {
-        "FEEDS": {f"./data/raw/{name}.json": {"format": "json"}}
+        "FEEDS": {
+            f"./data/raw/{name}.json": {
+                "format": "json", 
+                "overwrite": 1
+                }
+            }
     }
     def parser(self, response):
         congress_people_ids = self._get_valid_congress_people_ids(response)
@@ -78,7 +83,7 @@ class BiographySpider(BaseSpider):
 class InterestsSpider(BaseSpider):
     name = 'interests'
     custom_settings = {
-        "FEEDS": {f"./data/raw/{name}.json": {"format": "json"}}
+        "FEEDS": {f"./data/raw/{name}.json": {"format": "json", "overwrite": True}}
     }
     def parser(self, response):
         congress_people_ids = self._get_valid_congress_people_ids(response)

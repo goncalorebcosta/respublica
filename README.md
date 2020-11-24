@@ -1,11 +1,20 @@
 # respublica
 
-### to do:
+### Scraping:
+- finish interests
+- interventions 
+- plenario presences
+- comission presences (from .pdf)
 
-- requirements
-- interests extractor
-- enhance viz
+### Visualization
+- Fix text colours 
+- Highlight edges on node click/selection
+    - Info to display: presences, demographics
 
-- cloud deploy
 
-- Finish scraping
+
+### Architecture
+- Go from monolithic to microservice:
+    - Scraper
+    - MongoDB
+    - Web app
